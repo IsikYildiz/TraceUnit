@@ -1,0 +1,29 @@
+{
+  "name": "traceunit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "backend/index.js",
+  "scripts": {
+    "dev": "\"npm run electron\"",
+    "electron": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^37.2.3"
+  },
+  "dependencies": {
+    "jest": "^30.0.5",
+    "ollama": "^0.5.16",
+    "ts-jest": "^29.4.0"
+  },
+  "build": {
+    "files": [
+      "backend/index.js",
+      "backend/preload.js"
+    ]
+  }
+}
