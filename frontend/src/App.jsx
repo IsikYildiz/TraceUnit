@@ -11,6 +11,7 @@ function App() {
   const [fixedCode, setFixedCode] = useState('');
   const [tests, setTests] = useState('');
   const [warning, setWarning] = useState("none");
+  const [coveredLines, setCoveredLines] = useState(-1);
 
   async function writeTests(){
     setInstructionButton("none");
@@ -21,9 +22,9 @@ function App() {
       setWarning("block");
       return 1;
     }
-    console.log(response.fixedCode)
     setFixedCode(response.fixedCode);
     setTests(response.tests);
+    setCoveredLines(response.coveredLines);
     setStarted(1);
   }
 
@@ -63,9 +64,19 @@ function App() {
           </div>
         </div>
         <div className="row">
-          <pre  className="codebox appear" style={{width:"600px", height:"500px", whiteSpace: "pre", marginRight:"20px"}}>
-            <code>{fixedCode}</code>
-          </pre >
+          <div className="codebox appear" style={{width: "600px", height: "500px", marginRight: "20px"}}>
+            {fixedCode.split('\n').map((line, i) => {
+              const lineNumber = i + 1;
+              const isCovered = coveredLines.includes(lineNumber);
+              
+              return (
+              <div key={i} style={{backgroundColor: isCovered ? '#329937ff' : '#d02424ff', width: 'max-content', minWidth: '100%', padding: '0 8px', whiteSpace: 'pre', marginBottom: '3px'}}>
+                <span style={{ color: 'white', marginRight: '8px' }}>{lineNumber.toString().padStart(2, '0')}</span>
+                <span>{line}</span>
+              </div>
+              );
+            })}
+          </div>
           <pre  className="codebox appear" style={{width:"600px", height:"500px", whiteSpace: "pre", marginLeft:"20px"}}>
             <code>{tests}</code>
           </pre >
