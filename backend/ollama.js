@@ -3,7 +3,6 @@
 
 // Ollamaya http ile istek gönderen fonksiyon
 async function sendOllamaRequest(prompt) {
-  console.log("\n🔵 [Ollama Prompt]\n", prompt);
   const response = await fetch('http://localhost:11434/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

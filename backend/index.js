@@ -29,6 +29,8 @@ ipcMain.handle('get-code-tests', async (event, {code}) => {
   const language  = await ollama.detectProgrammingLanguage(fixedCode);
   const tests  = await ollama.writeTests(fixedCode,language);
   const coveredLines = await ollama.findCoverRate(fixedCode,tests);
+
+  console.log(fixedCode)
   
   return {
       fixedCode,

@@ -21,6 +21,7 @@ function App() {
       setWarning("block");
       return 1;
     }
+    console.log(response.fixedCode)
     setFixedCode(response.fixedCode);
     setTests(response.tests);
     setStarted(1);
@@ -62,10 +63,10 @@ function App() {
           </div>
         </div>
         <div className="row">
-          <pre  className="codebox appear" style={{width:"600px", height:"500px", marginRight:"20px"}}>
+          <pre  className="codebox appear" style={{width:"600px", height:"500px", whiteSpace: "pre", marginRight:"20px"}}>
             <code>{fixedCode}</code>
           </pre >
-          <pre  className="codebox appear" style={{width:"600px", height:"500px", marginLeft:"20px"}}>
+          <pre  className="codebox appear" style={{width:"600px", height:"500px", whiteSpace: "pre", marginLeft:"20px"}}>
             <code>{tests}</code>
           </pre >
         </div>
