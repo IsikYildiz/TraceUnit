@@ -16,9 +16,11 @@
     "electron": "^37.2.3"
   },
   "dependencies": {
+    "cross-spawn": "^7.0.6",
     "jest": "^30.0.5",
     "ollama": "^0.5.16",
-    "ts-jest": "^29.4.0"
+    "ts-jest": "^29.4.0",
+    "vitest": "^3.2.4"
   },
   "build": {
     "files": [

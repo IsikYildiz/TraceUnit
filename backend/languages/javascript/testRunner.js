@@ -9,14 +9,21 @@ function writeFiles(tempDir, language, code, tests) {
   fs.writeFileSync(path.join(tempDir, `code.${ext}`), code);
   fs.writeFileSync(path.join(tempDir, `code.test.${ext}`), tests);
 
-  fs.writeFileSync(path.join(tempDir, 'jest.config.js'), `
-    module.exports = {
-      preset: '${language === "TypeScript" ? "ts-jest" : ""}',
-      testEnvironment: 'node',
-      collectCoverage: true,
-      collectCoverageFrom: ['code.${ext}'],
-      coverageDirectory: 'coverage'
-    };
+  fs.writeFileSync(path.join(tempDir, 'vitest.config.ts'), `
+    import { defineConfig } from 'vitest/config';
+
+    export default defineConfig({
+      test: {
+        globals: true,
+        environment: 'node',
+        coverage: {
+          provider: 'c8',
+          reporter: ['text', 'json', 'html'],
+          reportsDirectory: './coverage',
+          include: ['code.${ext}'],
+        },
+      },
+    });
   `);
 
   if (language === 'TypeScript') {
@@ -40,7 +47,7 @@ exports.runTests = (language, code, tests) => {
   writeFiles(tempDir, language, code, tests);
 
   try {
-    execSync(`npx jest --config=jest.config.js --coverage --silent`, { cwd: tempDir });
+    execSync(`npx vitest run --config=vitest.config.ts --coverage --silent`, { cwd: tempDir, stdio: 'inherit'  });
     return path.join(tempDir, 'coverage', 'lcov.info');
   } catch (e) {
     return null;

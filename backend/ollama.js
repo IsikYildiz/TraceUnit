@@ -89,22 +89,22 @@ function generateTestPrompt(code, language) {
   // Dillere göre ollamaya yapması gerekenler verilir
   const mocksByLanguage = {
     "JavaScript": `
-    - Use **Jest** and **Supertest** for writing tests for testing JavaScript code.
-    - Mock external or third-party modules (e.g., **bcrypt**, **axios**, **database clients**) using \`jest.mock()\`.
-    - Always mock modules like \`db.js\`, \`services/*.js\`, \`utils/*.js\`, or any network/database call.
-    - Avoid importing or calling real services or APIs in tests.
-    - Use \`mockResolvedValue()\`, \`mockRejectedValue()\` for async functions.
-    - Avoid using \`app.listen()\`; use Supertest to test endpoints.
-    - Return test code only; do not include explanation or comments.`,
+    - Use **Vitest** for writing and running tests for JavaScript code.
+    - Use \`vi.mock()\` to mock third-party or project-specific modules (e.g., **axios**, **bcrypt**, **fs**, **db.js**, or \`services/*.js\`).
+    - Always mock external systems such as databases, APIs, or file system modules.
+    - Avoid using \`app.listen()\` or running actual servers. If testing API endpoints, simulate requests if possible.
+    - Use \`vi.fn()\`, \`vi.mocked()\`, \`mockResolvedValue()\`, and \`mockRejectedValue()\` for mocking and spying.
+    - Do not include explanation or comments, return test code only.`,
     
     "TypeScript": `
-    - Use **Jest** and **ts-jest** for testing TypeScript code.
-    - Use \`jest.mock()\` to mock third-party or project-specific modules like \`bcrypt\`, \`axios\`, or \`db.ts\`.
-    - Use **TypeScript typings** in mocks, e.g., \`jest.MockedFunction<typeof someFunction>\` to ensure type safety.
-    - Always mock external systems (e.g., DB access, HTTP requests, file systems).
-    - Do not import or invoke real modules. Use strict type annotations and dependency injection where possible.
-    - Avoid usage of \`app.listen()\`; prefer endpoint testing with \`supertest\`.
-    - Write clean, valid TypeScript test code compatible with tsconfig and test runners.`,
+    - Use **Vitest** and TypeScript for writing and running tests.
+    - Use \`vi.mock()\` and \`vi.fn()\` to mock third-party or internal modules (e.g., **axios**, **bcrypt**, \`./db.ts\`, etc.).
+    - Always mock database access, network calls, and file system operations.
+    - Avoid using \`app.listen()\`; focus on function-level testing or endpoint simulation.
+    - Use **TypeScript typings** where appropriate, e.g., \`vi.mocked<typeof myFunc>()\` to ensure type safety.
+    - Do not import real implementations if they rely on unavailable modules or services.
+    - Write clean, valid TypeScript test code with type safety.
+    - Return test code only, without explanation or output.`,
     
     "Python": `
     - Use **pytest** and optionally **pytest-mock** for mocking.
@@ -113,29 +113,13 @@ function generateTestPrompt(code, language) {
     - Structure tests using functions (not classes unless required) and follow pytest conventions.
     - For Flask or FastAPI, use the test client for endpoint testing and mock dependencies.
     - Return only test code. Do not include documentation or outputs.`,
-    
-    "Java": `
-    - Use **JUnit 5** for writing unit and integration tests.
-    - Use **Mockito** for mocking dependencies like services, repositories, or HTTP clients.
-    - Use \`@Mock\`, \`@InjectMocks\`, and \`Mockito.when(...)\` for behavior mocking.
-    - Do not use or call real service implementations, file I/O, or databases.
-    - If the code uses Spring, use \`@WebMvcTest\` or \`@SpringBootTest\` appropriately and isolate layers.
-    - Ensure the test class is self-contained and executable.`,
-    
-    "C#": `
-    - Use **NUnit**for writing tests.
-    - Use **Moq** or **NSubstitute** to mock services and dependencies.
-    - Do not connect to real databases or services; mock interfaces like \`IUserRepository\`, \`IEmailService\`, etc.
-    - Use \`Setup(...).Returns(...)\` and \`Verify(...)\` for asserting mock behavior.
-    - Use dependency injection to pass mocks.
-    - Structure tests with proper naming conventions: \`MethodName_StateUnderTest_ExpectedBehavior()\`.
-    - All tests should compile with no external configuration.`
   };
 
 
   const testInstructions = mocksByLanguage[language] || `
   - Write tests that can be run for the given code.
   - If there are external dependencies, mock them.
+  - Code will be written to a file named *code*, and test you provifde will be written into another file. The tests will run, do not forget this.
   `;
 
   return `
@@ -143,9 +127,11 @@ function generateTestPrompt(code, language) {
   ${testInstructions}
   
   Return just the tests themselvs.
+
+  İf you can't understand the code at all just return "unknown"
   
   Code:
-  ${code}
+  ${code} 
   `;
 }
 
@@ -176,7 +162,11 @@ exports.findCoverRate = async (code, tests) => {
   ${tests}
   `;
 
-  const response = await sendOllamaRequest(request);
+  let response = await sendOllamaRequest(request);
+
+  response = extractCodeBlock(response)
+
+  response = JSON.parse(response);
   
-  return extractCodeBlock(response);
+  return response;
 }

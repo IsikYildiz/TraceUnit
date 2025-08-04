@@ -3,7 +3,7 @@ const fs = require('fs');
 
 exports.parseLcov = (lcovPath) => {
   const lcov = fs.readFileSync(lcovPath, 'utf8');
-  const lines = lcov.split('\n');
+  const lines = lcov.split(/\r?\n/);
   const coverage = {};
 
   for (const line of lines) {
