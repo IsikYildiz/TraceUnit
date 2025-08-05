@@ -27,13 +27,27 @@ function createWindow() {
   });
 }
 
-ipcMain.handle('select-runtime-path', async () => {
+ipcMain.handle('select-node-modules-path', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  });
+  return result.canceled ? null : result.filePaths[0];
+});
+
+ipcMain.handle('select-python-runtime-path', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
     filters: [{ name: 'Executable', extensions: ['exe', 'bin', 'py'] }],
   });
   return result.canceled ? null : result.filePaths[0];
 });
+
+function deleteTemp(){
+  const tempPath = path.join(__dirname, 'temp');
+  if(fs.existsSync(tempPath)){
+    fs.rmSync(tempPath, { recursive: true, force: true });
+  }
+}
 
 ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes, runtimePath}) => {
   let codeChanged = true;
@@ -54,7 +68,8 @@ ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes,
   if (language === "Javascript" || language === "Typescript"){
     const tests  = await ollama.writeTests(code, language);
     try{
-      const testResultsPath = jsTestRunner.runTests(language, code, tests);
+      deleteTemp();
+      const testResultsPath = jsTestRunner.runTests(language, code, tests, runtimePath);
       const testResults = jsCoverageParser.parseLcov(testResultsPath);
       const coverRate = testResults.rate
       const coveredLines = testResults.coverage.map((element, index) => element === 1 ? index : -1).filter(element => element !== -1);
@@ -80,6 +95,7 @@ ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes,
     const tests = await ollama.writeTests(code, language);
     if (tests === "unknown") return "Couldn't understand code";
 
+    deleteTemp();
     const tempDir = path.join(__dirname, 'temp');
     fs.mkdirSync(tempDir, { recursive: true });
 

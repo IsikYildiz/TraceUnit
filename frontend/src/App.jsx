@@ -18,17 +18,25 @@ function App() {
   const [selectedLanguage, setSelectedLanguage] = useState("Other");
   const [fixMistakes, setFixMistakes] = useState(true);
   const [exception, setException] = useState(false);
-  const [runtimePath, setRunTimePath] = useState("");
 
   async function writeTests(){
     setInstruction("none");
-    if (selectedLanguage !== "Other"){
-      const result = await window.electronAPI.selectRunTimePath();
+    let runtimePath = '';
+    if (selectedLanguage === "Javascript" || selectedLanguage === "Typescript"){
+      const result = await window.electronAPI.selectNodeModulesPath();
       if (result === null){
         return;
       }
-      setRunTimePath(result);
+      runtimePath = result;
     }
+    else if(selectedLanguage === "Python"){
+      const result = await window.electronAPI.selectPythonRunTimePath();
+      if (result === null){
+        return;
+      }
+      runtimePath = result;
+    }
+
     const response = await window.electronAPI.getCodeTests(code, selectedLanguage, fixMistakes, runtimePath);
     if (response === "Couldn't understand code"){
       setWarning("block");

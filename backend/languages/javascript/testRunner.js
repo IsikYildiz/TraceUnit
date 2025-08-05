@@ -17,7 +17,7 @@ function writeFiles(tempDir, language, code, tests) {
         globals: true,
         environment: 'node',
         coverage: {
-          provider: 'c8',
+          provider: 'v8',
           reporter: ['text', 'json', 'html'],
           reportsDirectory: './coverage',
           include: ['code.${ext}'],
@@ -39,7 +39,7 @@ function writeFiles(tempDir, language, code, tests) {
   }
 }
 
-exports.runTests = (language, code, tests) => {
+exports.runTests = (language, code, tests, nodeModulePath) => {
   const tempDir = path.join(__dirname, '../../temp');
   if (fs.existsSync(tempDir)) {
     fs.rmSync(tempDir, { recursive: true });
@@ -47,9 +47,14 @@ exports.runTests = (language, code, tests) => {
   writeFiles(tempDir, language, code, tests);
 
   try {
-    execSync(`npx vitest run --config=vitest.config.ts --coverage --silent`, { cwd: tempDir, stdio: 'inherit'  });
+    const nodeModulesLink = path.join(tempDir, 'node_modules');
+    if (nodeModulePath && !fs.existsSync(nodeModulesLink)) {
+      fs.symlinkSync(nodeModulePath, nodeModulesLink, 'junction'); 
+    }
+    execSync(`npx vitest run --config=vitest.config.ts --coverage`, { cwd: tempDir, stdio: 'inherit'  });
     return path.join(tempDir, 'coverage', 'lcov.info');
   } catch (e) {
+    console.log(e.message);
     return null;
   }
 };

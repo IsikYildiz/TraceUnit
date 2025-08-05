@@ -119,7 +119,6 @@ function generateTestPrompt(code, language) {
   const testInstructions = mocksByLanguage[language] || `
   - Write tests that can be run for the given code.
   - If there are external dependencies, mock them.
-  - Code will be written to a file named *code*, and test you provifde will be written into another file. The tests will run, do not forget this.
   `;
 
   return `

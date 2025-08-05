@@ -176,4 +176,6 @@ dist-ssr
 *.sln
 *.sw?
 
+/temp
+
 # End of https://www.toptal.com/developers/gitignore/api/node,react
