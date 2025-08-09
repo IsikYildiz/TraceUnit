@@ -50,18 +50,16 @@ function deleteTemp(){
 }
 
 ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes, runtimePath}) => {
-  let codeChanged = true;
+  let codeChanged = false;
   let exception = false;
   if (fixCodeMistakes){
     const fixedCode = await ollama.fixCodeMistakes(code);
     if (fixedCode === "unknown" || !fixedCode ){
       return "Couldn't understand code";
     }
-    else if (fixedCode === "same"){
-      codeChanged = false;
-    }
     else {
       code = fixedCode;
+      codeChanged = true;
     }
   }
   
@@ -92,8 +90,12 @@ ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes,
     }
   }
   else if (language === "Python") {
-    const tests = await ollama.writeTests(code, language);
-    if (tests === "unknown") return "Couldn't understand code";
+    let tests = await ollama.writeTests(code, language);
+    if (tests === "unknown"){
+      return "Couldn't understand code";
+    }
+    const importLine = "from user_code import * \n";
+    tests = importLine + tests;
 
     deleteTemp();
     const tempDir = path.join(__dirname, 'temp');
@@ -101,17 +103,12 @@ ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes,
 
     try {
       const coverageData = pythonTestRunner.runPythonTests(runtimePath, code, tests, tempDir);
-      if (!coverageData) throw new Error();
+      if (!coverageData){
+        throw new Error();
+      } 
 
-      const lineHits = {};
-      for (const file in coverageData.files) {
-        const statements = coverageData.files[file].executed_lines || [];
-        statements.forEach(l => lineHits[l] = 1);
-      }
-
-      const lineCount = code.trim().split('\n').length;
-      const coveredLines = Object.keys(lineHits).map(Number).filter(l => l <= lineCount);
-      const coverRate = (coveredLines.length / lineCount) * 100;
+      const coveredLines = coverageData.files['user_code.py'].executed_lines;
+      const coverRate = coverageData.totals.percent_covered;   
 
       return {
         code,

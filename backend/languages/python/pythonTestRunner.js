@@ -15,16 +15,18 @@ exports.runPythonTests = (pythonPath, code, tests, tempDir) => {
 
   try {
     // coverage run
-    console.log("Kullanılan pythonPath:", pythonPath);
-    execSync(
-      `"${pythonPath}" -m coverage run --source=user_code test_user_code.py`,
-      { cwd: tempDir, stdio: 'inherit' }
-    );
+    try {
+      execSync(`"${pythonPath}" -m coverage run --source=user_code -m pytest --maxfail=0 test_user_code.py`,
+        { cwd: tempDir, stdio: 'pipe', encoding: 'utf8' });
+    } catch (error) {
+      console.error('Hata stdout:', error.stdout);
+      console.error('Hata stderr:', error.stderr);
+    }
 
     // coverage json export
     execSync(
       `"${pythonPath}" -m coverage json`,
-      { cwd: tempDir, stdio: 'inherit' }
+      { cwd: tempDir, stdio: 'pipe' }
     );
 
     // coverage.json dosyasını oku

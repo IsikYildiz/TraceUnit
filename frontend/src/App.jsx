@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import './site.css'
 import './general.css'
-import QuestionBox from './images/question_box.png'
+import QuestionBox from './images/QuestionBox.png'
+import TaceUnitLogo from './images/TraceUnitLogo.png'
 import Settings from './components/Settings'
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
     if (response.codeChanged){
       setFixedMessage("(Fixed Mistakes)");
     }
+    console.log('response.exception:', response.exception, typeof response.exception);
     if (response.exception){
       setException(true);
       setFixedCode(response.code);
@@ -118,7 +120,7 @@ function App() {
               const lineNumber = i + 1;
               const isCovered = coveredLines.includes(lineNumber);
               
-              const backgroundColor = setException
+              const backgroundColor = exception
               ? 'transparent'
               : isCovered
                 ? '#329937ff'
@@ -150,7 +152,7 @@ function App() {
         <button className="appear instructionButton" onClick={changeInstructionVisibilty} style={{display:instructionButton}}>
           <img className="appear instructionImg" src={QuestionBox}></img>
         </button>
-        <h1 className="header appear">TraceUnit</h1>
+        <img className="header appear" src={TaceUnitLogo} style={{width:"12rem", height:"8.5rem", margin:"1.4rem"}}></img>
         <div className="popUpOverlay" style={{display:instruction}}>
           <button className="instructionButton" onClick={changeInstructionVisibilty} style={{display:instructionButton}}>
             <img className="instructionImg" src={QuestionBox}></img>
