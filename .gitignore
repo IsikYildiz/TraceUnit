@@ -176,6 +176,8 @@ dist-ssr
 *.sln
 *.sw?
 
-/temp
+# Other files
+backend/temp
+backend/excel.js
 
 # End of https://www.toptal.com/developers/gitignore/api/node,react
