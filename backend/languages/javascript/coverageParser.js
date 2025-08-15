@@ -1,7 +1,9 @@
+// Javascript ve Typescript test sonuçlarıyla ilgili kısım
 const fs = require('fs');
 
-
+// Verilen yoldaki dosyada bulunan test sonuçları okur ve gerekli değerleri döndürür.
 exports.parseLcov = (lcovPath) => {
+  // İleride belki test sayısı gibi bilgilerde döndürülebilir
   const lcov = fs.readFileSync(lcovPath, 'utf8');
   const lines = lcov.split(/\r?\n/);
   const coverage = {};

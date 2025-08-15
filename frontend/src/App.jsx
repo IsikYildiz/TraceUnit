@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import './site.css'
 import './general.css'
-import QuestionBox from './images/QuestionBox.png'
-import TaceUnitLogo from './images/TraceUnitLogo.png'
 import Settings from './components/Settings'
+import TestResults from './components/TestResults'
+import Header from './components/Header'
 
 function App() {
   const [started,setStarted] = useState(0);
@@ -21,43 +21,47 @@ function App() {
   const [exception, setException] = useState(false);
   const [ollamaModel, setOllamaModel] = useState("");
 
+  // Sayfa ilk yüklendiğinde ayarlar alınır
   useEffect(() => {
     async function getOllamaModel() {
       const settings = await window.electronAPI.getSettings();
+      // Ollama modeli değiştirilebilsin, diğerleri backend de otomatik değiştirilecek
       setOllamaModel(settings.ollamaModel);
     }
     getOllamaModel();
   }, []);
 
+  // Testlerin oluşturulup çalıştırılması ve sonuçlarının gösterilmesi
   async function writeTests(){
     setInstruction("none");
+    // İlk olarak ollama modeli güncellenir
     await window.electronAPI.updateSettings("ollamaModel", ollamaModel);
     let runtimePath = '';
     if (selectedLanguage === "Javascript" || selectedLanguage === "Typescript"){
-      const result = await window.electronAPI.selectNodeModulesPath();
+      const result = await window.electronAPI.selectNodeModulesPath(); // Javascript/Typescript seçildiğinde node modules klasörünün yerini sor
       if (result === null){
         return;
       }
       runtimePath = result;
     }
     else if(selectedLanguage === "Python"){
-      const result = await window.electronAPI.selectPythonRunTimePath();
+      const result = await window.electronAPI.selectPythonRunTimePath(); // Python seçildiğinde python yolunu sor
       if (result === null){
         return;
       }
       runtimePath = result;
     }
 
+    // Testler çalıştırılır
     const response = await window.electronAPI.getCodeTests(code, selectedLanguage, fixMistakes, runtimePath);
-    if (response === "Couldn't understand code"){
-      setWarning("block");
+    if (response === "Couldn't understand code"){ // Kod anlaşılamazsa warning logonun hemen altında kırmızı gösterilir
+      setWarning("block"); 
       return;
     }
-    if (response.codeChanged){
+    if (response.codeChanged){ // Eğer kod hataları düzeltilmişse bunu belirt
       setFixedMessage("(Fixed Mistakes)");
     }
-    console.log('response.exception:', response.exception, typeof response.exception);
-    if (response.exception){
+    if (response.exception){ // EĞer testler çalıştırılırken hata olursa, yinede testleri göster
       setException(true);
       setFixedCode(response.code);
       setTests(response.tests);
@@ -66,6 +70,7 @@ function App() {
       setStarted(1);
       return;
     }
+    // Hata olmassa testleri, çalıştırılmış satırları ve cover rate i göster
     setInstructionButton("none");
     setWarning("none");
     setFixedCode(response.code);
@@ -75,6 +80,7 @@ function App() {
     setStarted(1);
   }
 
+  // Kullanma yazısı gösteriliyorsa kapatır, yoksa gösterir
   function changeInstructionVisibilty(){
     if(instruction === "none"){
       setInstruction("flex");
@@ -84,6 +90,7 @@ function App() {
     }
   }
 
+  // İlk sayfaya dönülür, daha önce yazılmış kod aynı kalır
   function goBack() {
     setStarted(0);
     setInstructionButton("block");
@@ -107,51 +114,7 @@ function App() {
   else{
     codeSpace = 
     <>
-      <div className="column">
-        <div className="row" style={{width:"81.3rem"}}>
-          <div className="row" style={{width:"40.6rem", justifyContent:"right"}}>
-            <div style={{width:"40.6rem", display:"flex", justifyContent:"center", alignItems:"center", position:"absolute"}}>
-              <p className="instruction appear" style={{width:"fit-content", height:"auto"}}>Code {fixedMessage}</p>
-            </div>
-            <p className="instruction appear" style={{width:"auto", height:"auto", zIndex:"2"}}>Cover Rate:{coverRate}%</p>
-          </div>
-          <div className="center" style={{width:"40.6rem"}}>
-            <p className="instruction appear" style={{width:"auto", height:"auto"}}>Tests</p>
-          </div>
-        </div>
-        <div className="row">
-          <div className="codebox appear" style={{width: "37.5rem", height: "31.25rem", marginRight: "1.25rem"}}>
-            {exception && (
-              <div style={{ color: 'red', padding: '0.5rem' }}>
-                Test execution failed. Coverage data unavailable.
-                </div>
-            )}
-            {fixedCode.split('\n').map((line, i) => {
-              const lineNumber = i + 1;
-              const isCovered = coveredLines.includes(lineNumber);
-              
-              const backgroundColor = exception
-              ? 'transparent'
-              : isCovered
-                ? '#329937ff'
-                : '#d02424ff';
-                
-              return (
-              <div key={i} style={{backgroundColor, width: 'max-content', minWidth: '100%', padding: '0 0.5rem', whiteSpace: 'pre',marginBottom: '0.2rem',}}>
-                <span style={{ color: 'white', marginRight: '0.5rem' }}>
-                  {lineNumber.toString().padStart(2, '0')}
-                </span>
-                <span>{line}</span>
-                </div>
-              );
-            })}
-          </div>
-          <pre  className="codebox appear" style={{width:"37.5rem", height:"31.25rem", whiteSpace: "pre", marginLeft:"1.25rem"}}>
-            <code>{tests}</code>
-          </pre >
-        </div>
-        <button className="button appear" onClick={goBack}>Return</button>
-      </div>
+      <TestResults tests={tests} fixedCode={fixedCode} fixedMessage={fixedMessage} coverRate={coverRate} exception={exception} goBack={goBack} coveredLines={coveredLines}></TestResults>
     </>
   }
 
@@ -159,21 +122,7 @@ function App() {
     <>
     <div className="column">
       <div className="column">
-        <button className="appear instructionButton" onClick={changeInstructionVisibilty} style={{display:instructionButton}}>
-          <img className="appear instructionImg" src={QuestionBox}></img>
-        </button>
-        <img className="header appear" src={TaceUnitLogo} style={{width:"12rem", height:"8.5rem", margin:"1.4rem"}}></img>
-        <div className="popUpOverlay" style={{display:instruction}}>
-          <button className="instructionButton" onClick={changeInstructionVisibilty} style={{display:instructionButton}}>
-            <img className="instructionImg" src={QuestionBox}></img>
-          </button>
-          <p className="instruction appear">
-          <strong>Instructions:</strong>&nbsp;Write your code into are given below, choose your programming language and press "Create".
-          If you dont want ollama to try and fix mistakes on your code simply uncheck the option (this would also speed up process). 
-          İf you select "Other" on programming language, the tests will not run instead ollama itself will try to determine cover rate. 
-          This can be wrong, but tests themselves should be same.
-          </p>
-        </div>
+        <Header instruction={instruction} instructionButton={instructionButton} changeInstructionVisibilty={changeInstructionVisibilty}></Header>
         <p className="instruction appear" style={{display:warning}}>
           Ollama couldn't understand the code. Please try again.
         </p>
