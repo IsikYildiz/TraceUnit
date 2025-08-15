@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './site.css'
 import './general.css'
 import QuestionBox from './images/QuestionBox.png'
@@ -19,9 +19,19 @@ function App() {
   const [selectedLanguage, setSelectedLanguage] = useState("Other");
   const [fixMistakes, setFixMistakes] = useState(true);
   const [exception, setException] = useState(false);
+  const [ollamaModel, setOllamaModel] = useState("");
+
+  useEffect(() => {
+    async function getOllamaModel() {
+      const settings = await window.electronAPI.getSettings();
+      setOllamaModel(settings.ollamaModel);
+    }
+    getOllamaModel();
+  }, []);
 
   async function writeTests(){
     setInstruction("none");
+    await window.electronAPI.updateSettings("ollamaModel", ollamaModel);
     let runtimePath = '';
     if (selectedLanguage === "Javascript" || selectedLanguage === "Typescript"){
       const result = await window.electronAPI.selectNodeModulesPath();
@@ -88,7 +98,7 @@ function App() {
       <div className="column">
         <div className="row" style={{width:"100%"}}>
           <textarea style={{marginRight:"3.1rem", marginLeft:"28rem"}} className="codebox appear" placeholder="Write code here" name="codeArea" value={code} onChange={e => setCode(e.target.value)}></textarea>
-          <Settings onLanguageChange={setSelectedLanguage} onFixChange={setFixMistakes} className="center"></Settings>
+          <Settings onLanguageChange={setSelectedLanguage} onFixChange={setFixMistakes} onModelChange={setOllamaModel} ollamaModel={ollamaModel} className="center"></Settings>
         </div>
         <button className="button appear" onClick={writeTests}>Create</button>
       </div>

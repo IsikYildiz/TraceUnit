@@ -1,5 +1,6 @@
 // Burada ollama ile bağlantı sağlanır
 // Kullanıcıdan gelen kod ile ilgili işlemler yapılır
+const jsonOperations = require('./jsonOperations')
 
 // Ollamaya http ile istek gönderen fonksiyon
 async function sendOllamaRequest(prompt) {
@@ -7,7 +8,7 @@ async function sendOllamaRequest(prompt) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'qwen2.5-coder:7b',
+      model: jsonOperations.getSettings("ollamaModel"),
       messages: [
         { role: 'user', content: prompt }
       ],
@@ -16,8 +17,10 @@ async function sendOllamaRequest(prompt) {
   });
 
   const data = await response.json();
+  if (!data.message) {
+    throw new Error(data.error || 'Ollama API beklenmeyen cevap döndü');
+  }
   return data.message.content.trim();
-
 }
 
 // Ollamanın çıktılarındaki gereksiz işaretleri kaldırır

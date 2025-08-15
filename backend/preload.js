@@ -1,7 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+  updateSettings: (choice, value) => ipcRenderer.invoke('update-settings', {choice, value}),
+  getSettings: () => ipcRenderer.invoke('get-settings'),
   selectNodeModulesPath: () => ipcRenderer.invoke('select-node-modules-path'),
   selectPythonRunTimePath: () => ipcRenderer.invoke('select-python-runtime-path'),
-  getCodeTests: (code, language, fixCodeMistakes, runtimePath) => ipcRenderer.invoke('get-code-tests', { code, language, fixCodeMistakes, runtimePath}),
+  getCodeTests: (code, language, fixCodeMistakes, runtimePath) => ipcRenderer.invoke('get-code-tests', {code, language, fixCodeMistakes, runtimePath}),
 });

@@ -183,3 +183,18 @@
   align-items: center;
   z-index: 1000;
 }
+
+.textField{
+  display: flex;
+  justify-content: left;
+  align-items: left;
+  font-family: 'Ligconsolata';
+  font-style: normal;
+  font-size: 1.1rem;
+  color: rgb(255, 255, 255);
+  width: 18.75rem;
+  margin: 0.6rem;
+  background: #40348a;
+  border: 0.1rem solid #34ff1d;
+  box-shadow: 0px 0.0625rem 0.0625rem 0.0625rem rgba(33, 48, 144, 0.964);
+}

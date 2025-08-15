@@ -5,6 +5,7 @@ const ollama = require('./ollama');
 const jsTestRunner = require('./languages/javascript/testRunner');
 const jsCoverageParser = require('./languages/javascript/coverageParser');
 const pythonTestRunner = require('./languages/python/pythonTestRunner');
+const jsonOperations = require('./jsonOperations')
 
 // Electron uygulamasını başlatır
 function createWindow() {
@@ -25,12 +26,32 @@ function createWindow() {
   win.webContents.on('did-finish-load', () => {
     win.webContents.setZoomFactor(0.85);
   });
+  jsonOperations.createSettingsJson();
 }
+
+ipcMain.handle('update-settings', async (event, {choice, value}) =>{
+  const message = jsonOperations.setSettings(choice, value);
+  return message;
+});
+
+ipcMain.handle('get-settings', async () => {
+  const nodeModulesPath = jsonOperations.getSettings("nodeModulesPath");
+  const pythonPath = jsonOperations.getSettings("pythonPath");
+  const ollamaModel = jsonOperations.getSettings("ollamaModel");
+
+  return {
+    nodeModulesPath,
+    pythonPath,
+    ollamaModel
+  }
+})
 
 ipcMain.handle('select-node-modules-path', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openDirectory'],
+    defaultPath: jsonOperations.getSettings("nodeModulesPath") || undefined
   });
+  jsonOperations.setSettings("nodeModulesPath",result.filePaths[0]);
   return result.canceled ? null : result.filePaths[0];
 });
 
@@ -38,7 +59,9 @@ ipcMain.handle('select-python-runtime-path', async () => {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
     filters: [{ name: 'Executable', extensions: ['exe', 'bin', 'py'] }],
+    defaultPath: jsonOperations.getSettings("pythonPath") || undefined
   });
+  jsonOperations.setSettings("pythonPath",result.filePaths[0]);
   return result.canceled ? null : result.filePaths[0];
 });
 
