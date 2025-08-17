@@ -5,7 +5,8 @@
   "main": "backend/index.js",
   "scripts": {
     "dev": "\"npm run electron\"",
-    "electron": "electron ."
+    "electron": "electron .",
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
