@@ -198,3 +198,25 @@
   border: 0.1rem solid #34ff1d;
   box-shadow: 0px 0.0625rem 0.0625rem 0.0625rem rgba(33, 48, 144, 0.964);
 }
+
+/*Global Scrollbar*/
+::-webkit-scrollbar {
+  width: 8px; 
+  height: 8px; 
+}
+
+::-webkit-scrollbar-track {
+  background: #190f4e; 
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #451390; 
+  border-radius: 10px;
+  cursor: grab;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4b179e; 
+  cursor: grabbing;
+}

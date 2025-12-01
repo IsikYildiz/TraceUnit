@@ -84,6 +84,22 @@ function deleteTemp(){
   }
 }
 
+// Javascript/Typescript fonksiyon isimlerini çıkaran fonksiyon
+function extractExportedNames(code) {
+  const names = [];
+  const regex = /export\s+(?:function\s+(\w+)|const\s+(\w+)\s*=)/g;
+  let match;
+
+  while ((match = regex.exec(code)) !== null) {
+    const name = match[1] || match[2];
+    if (name) {
+      names.push(name);
+    }
+  }
+  
+  return names;
+}
+
 // Verilen kod için testler oluşturulur, coverage bilgileri hesaplanır ve döndürülür
 ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes, runtimePath}) => {
   let codeChanged = false; //Kodun değişip değiştirilmediğinin kontrolü
@@ -102,12 +118,22 @@ ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes,
   }
   
   if (language === "Javascript" || language === "Typescript"){
-    const tests  = await ollama.writeTests(code, language); //Testler ollama ile oluşturulur
+    let tests  = await ollama.writeTests(code, language); //Testler ollama ile oluşturulur
     if (tests === "unknown"){
       return "Couldn't understand code"; // Hata düzeltme kapalı ve ollama kodu anlayamassa 
     }
     try{
       deleteTemp();
+      
+      const ext = language === 'TypeScript' ? 'ts' : 'js';
+      const codeFileName = `code.${ext}`;
+      
+      const exportedNames = extractExportedNames(code);
+      const namesString = exportedNames.join(', '); 
+      
+      const importLine = `import { test, expect } from 'vitest';\nimport { ${namesString} } from './${codeFileName}';\n\n`; 
+      tests = importLine + tests;
+
       const testResultsPath = jsTestRunner.runTests(language, code, tests, runtimePath); // Testler çalıştırılır
       const testResults = jsCoverageParser.parseLcov(testResultsPath); //Coverage alınır
       const coverRate = testResults.rate
@@ -122,8 +148,9 @@ ipcMain.handle('get-code-tests', async (event, {code, language, fixCodeMistakes,
         exception
       }
     }
-    catch{
+    catch(e){
       // Hata durumunda sadece kod ve testler döndürülür
+      console.error("JavaScript/TypeScript Test Çalıştırma Hatası:", e);
       exception = true;
       return{
         code,
