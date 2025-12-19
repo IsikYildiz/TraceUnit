@@ -2,7 +2,7 @@
 
 ---
 
-## 🇹🇷 Türkçe Açıklama
+## Türkçe Açıklama
 
 ### Proje Özeti
 
@@ -27,7 +27,7 @@ Bunun yerine cover rate ollama tarafından hesaplanır. Testlerin ve cover rate 
 
 ---
 
-## 🇬🇧 English Description
+## English Description
 
 ### Project Overview
 
